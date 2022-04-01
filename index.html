@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Scrollbar example LightningChart JS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <script src="./xydata.iife.js"></script>
+    <script src="./lcjs.iife.js"></script>
+    <script>
+      const {createProgressiveTraceGenerator} = xydata
+      const {AxisTickStrategies,lightningChart} = lcjs
+
+      const kpiList = new Array(32).fill(0).map((_, i) => ({}))
+
+      document.body.style.margin = '0px'
+      document.body.style.padding = '0px'
+
+      const view = document.createElement('div')
+      document.body.append(view)
+      view.style.width = '100%'
+      view.style.height = '100vh'
+
+      const chartContainer = document.createElement('div')
+      view.append(chartContainer)
+      chartContainer.style.width = '100%'
+      chartContainer.style.height = '4000px'
+
+      const dashboard = lightningChart().Dashboard({
+          container: chartContainer,
+          numberOfColumns: 1,
+          numberOfRows: kpiList.length,
+      })
+
+      const charts = kpiList.map((kpi, i) => {
+          const chart = dashboard.createChartXY({ columnIndex: 0, rowIndex: i }).setTitle(`KPI ${i + 1}`)
+          const axisX = chart.getDefaultAxisX().setTickStrategy(AxisTickStrategies.Empty)
+          const axisY = chart.getDefaultAxisY().setTickStrategy(AxisTickStrategies.Empty)
+          const series = chart.addLineSeries({ dataPattern: { pattern: 'ProgressiveX' } })
+          createProgressiveTraceGenerator()
+              .setNumberOfPoints(100000)
+              .generate()
+              .toPromise()
+              .then((data) => series.add(data))
+
+          return { chart }
+      })
+
+    </script>
+  </body>
+</html>
